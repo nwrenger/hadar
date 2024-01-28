@@ -9,7 +9,7 @@ use crate::env::*;
 use crate::game::Game;
 use crate::grid::CellT;
 
-#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct StarAgent;
 
 impl StarAgent {
@@ -24,11 +24,7 @@ impl StarAgent {
             }
         }
 
-        let first_food = match food.get(0) {
-            Some(food) => *food,
-            None => Vec2D::default(),
-        };
-        let nearest_food = food
+        let target = food
             .iter()
             .min_by(|&&a, &&b| {
                 let distance_a = ((a.x - my.head().x).pow(2) + (a.y - my.head().y).pow(2)) as f64;
@@ -37,18 +33,20 @@ impl StarAgent {
                     .partial_cmp(&distance_b)
                     .unwrap_or(Ordering::Equal)
             })
-            .copied()
-            .unwrap_or(first_food);
+            .copied();
 
-        let path = game
-            .grid
-            .a_star(my.head(), nearest_food, &[0.0, 0.0, 0.0, 0.0]);
-        match path {
-            Some(path) => {
-                if path.len() >= 2 {
-                    MoveResponse::new(Direction::from(path[1] - path[0]))
-                } else {
-                    MoveResponse::new(random(game))
+        match target {
+            Some(target) => {
+                let path = game.grid.a_star(my.head(), target, &[0.0, 0.0, 0.0, 0.0]);
+                match path {
+                    Some(path) => {
+                        if path.len() >= 2 {
+                            MoveResponse::new(Direction::from(path[1] - path[0]))
+                        } else {
+                            MoveResponse::new(random(game))
+                        }
+                    }
+                    None => MoveResponse::new(random(game)),
                 }
             }
             None => MoveResponse::new(random(game)),

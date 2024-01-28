@@ -21,7 +21,7 @@ pub enum Agent {
 
 impl Default for Agent {
     fn default() -> Self {
-        Self::AStar(StarAgent::default())
+        Self::AStar(StarAgent)
     }
 }
 

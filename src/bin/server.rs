@@ -3,9 +3,9 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Instant;
 
-use log::{info, warn};
 use hadar::env::{GameRequest, IndexResponse, API_VERSION};
 use hadar::{agents::*, logging};
+use log::{info, warn};
 
 use clap::Parser;
 use warp::Filter;
