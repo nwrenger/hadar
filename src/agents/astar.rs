@@ -24,9 +24,9 @@ impl StarAgent {
         for i in 1..game.snakes.len() {
             if game.snakes[i].alive()
                 && my.body.len() > 10
-                && my.body.len() < game.snakes[i].body.len()
-                && (game.snakes[i].head().x - my.head().x).abs() == 1
-                && (game.snakes[i].head().y - my.head().y).abs() == 1
+                && my.body.len() > game.snakes[i].body.len() + 3
+                && (game.snakes[i].head().x - my.head().x).abs() <= 1
+                && (game.snakes[i].head().y - my.head().y).abs() <= 1
             {
                 mode = Mode::Kill(i);
             }
