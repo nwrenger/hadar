@@ -12,28 +12,51 @@ use crate::grid::CellT;
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct StarAgent;
 
+enum Mode {
+    Food,
+    Kill(usize),
+}
+
 impl StarAgent {
     pub async fn step(&self, game: &Game) -> MoveResponse {
         let my = &game.snakes[0];
-        let mut food = Vec::new();
-        for y in 0..game.grid.height as i16 {
-            for x in 0..game.grid.width as i16 {
-                if game.grid[v2(x, y)].t == CellT::Food {
-                    food.push(v2(x, y));
-                }
+        let mut mode = Mode::Food;
+        for i in 1..game.snakes.len() {
+            if game.snakes[i].alive()
+                && my.body.len() > 10
+                && my.body.len() < game.snakes[i].body.len()
+                && (game.snakes[i].head().x - my.head().x).abs() == 1
+                && (game.snakes[i].head().y - my.head().y).abs() == 1
+            {
+                mode = Mode::Kill(i);
             }
         }
 
-        let target = food
-            .iter()
-            .min_by(|&&a, &&b| {
-                let distance_a = ((a.x - my.head().x).pow(2) + (a.y - my.head().y).pow(2)) as f64;
-                let distance_b = ((b.x - my.head().x).pow(2) + (b.y - my.head().y).pow(2)) as f64;
-                distance_a
-                    .partial_cmp(&distance_b)
-                    .unwrap_or(Ordering::Equal)
-            })
-            .copied();
+        let target = match mode {
+            Mode::Food => {
+                let mut food = Vec::new();
+                for y in 0..game.grid.height as i16 {
+                    for x in 0..game.grid.width as i16 {
+                        if game.grid[v2(x, y)].t == CellT::Food {
+                            food.push(v2(x, y));
+                        }
+                    }
+                }
+
+                food.iter()
+                    .min_by(|&&a, &&b| {
+                        let distance_a =
+                            ((a.x - my.head().x).pow(2) + (a.y - my.head().y).pow(2)) as f64;
+                        let distance_b =
+                            ((b.x - my.head().x).pow(2) + (b.y - my.head().y).pow(2)) as f64;
+                        distance_a
+                            .partial_cmp(&distance_b)
+                            .unwrap_or(Ordering::Equal)
+                    })
+                    .copied()
+            }
+            Mode::Kill(i) => Some(game.snakes[i].head()),
+        };
 
         match target {
             Some(target) => {
